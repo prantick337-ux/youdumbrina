@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A little mood reset</title>
+<style>
+:root{--ink:#59464b;--rose:#bd858f;--paper:#fff8f5;--paper2:#f7e9e8;--line:#ead4d4;--blush:#f4dfe2;--dust:#c99ca3}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:grid;place-items:center;padding:22px;background:radial-gradient(circle at 12% 12%,#f6dfe3,transparent 34%),radial-gradient(circle at 88% 82%,#eadde9,transparent 32%),linear-gradient(135deg,#f7eeeb,#f2e4e5 55%,#f8eeea);color:var(--ink);font-family:Georgia,"Times New Roman",serif;overflow-x:hidden;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:1000;opacity:.16;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.92' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.28'/%3E%3C/svg%3E");mix-blend-mode:multiply}
+#sparkleLayer{position:fixed;inset:0;pointer-events:none;z-index:999;overflow:hidden}
+.spark{position:absolute;color:#fff;font-family:Georgia,serif;text-shadow:0 0 7px #fff,0 0 15px #e9aebd;animation:twinkle var(--dur,2.4s) ease-in-out infinite;will-change:transform,opacity}
+@keyframes twinkle{0%,100%{opacity:.15;transform:scale(.65) rotate(0)}50%{opacity:.95;transform:scale(1.18) rotate(35deg)}}
+@keyframes softPop{0%{opacity:0;transform:translateY(8px) scale(.96)}100%{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes typeGlow{0%{text-shadow:0 0 0 transparent}100%{text-shadow:0 0 12px #e9b7c1}}
+
+button,input{font:inherit}
+button{border:0;border-radius:999px;padding:12px 22px;background:linear-gradient(135deg,#c78f98,#b97d88);color:white;cursor:pointer;box-shadow:0 6px 18px #b77c8830;transition:transform .22s ease,box-shadow .22s ease,filter .22s ease;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+button:hover{transform:translateY(-2px);box-shadow:0 9px 22px #b77c8845;filter:saturate(1.08)}
+button:active{transform:scale(.97)}
+button:focus-visible,input:focus-visible{outline:3px solid #d9aab4;outline-offset:3px}
+button:disabled{opacity:.35;cursor:not-allowed;transform:none}
+#lock{width:min(430px,100%);text-align:center;background:linear-gradient(145deg,#fffaf7ed,#f9e9e8f2);border:1px solid #ead4d4;border-radius:24px;padding:38px 28px;box-shadow:0 20px 60px #80565d20;backdrop-filter:blur(8px);animation:softPop .8s both}
+h1{font-weight:normal;font-size:clamp(28px,6vw,38px);margin:8px 0 12px}
+.sub{font:13px/1.6 Arial,sans-serif;letter-spacing:.08em;color:#9a8178;text-transform:uppercase}
+input{width:100%;border:1px solid #e4cfc6;border-radius:12px;background:#fffdf9;padding:14px 15px;color:var(--ink);outline:none;text-align:center;margin:15px 0}
+input:focus{border-color:var(--rose);box-shadow:0 0 0 3px #b875791c}
+#error{height:20px;color:#ad555b;font:13px Arial,sans-serif}
+#bookWrap{display:none;width:min(760px,100%)}
+.book{position:relative;min-height:560px;background:var(--paper);border:1px solid #e8d1d2;border-radius:8px 20px 20px 8px;box-shadow:0 25px 70px #80565d25,inset 12px 0 18px #6c4b3510;overflow:visible;perspective:1800px;transform-style:preserve-3d}
+.book:before{content:"";position:absolute;left:24px;top:0;bottom:0;width:1px;background:#eadbd0;box-shadow:4px 0 7px #8b70631a;z-index:30;pointer-events:none}
+.page{position:absolute;inset:0;display:flex;min-height:560px;padding:64px clamp(30px,8vw,78px) 82px clamp(44px,9vw,90px);text-align:center;flex-direction:column;justify-content:center;align-items:center;background:linear-gradient(90deg,#f0dfe0 0,#fff8f5 5%,#fff8f5 100%);border-radius:7px 18px 18px 7px;transform-origin:left center;transform:rotateY(0deg);transition:transform .95s cubic-bezier(.2,.72,.18,1),box-shadow .95s;backface-visibility:hidden;transform-style:preserve-3d;box-shadow:inset 5px 0 9px #6c4b350d;}
+.page.turned{transform:rotateY(-180deg);box-shadow:inset -7px 0 12px #6c4b3520}
+.page.active{z-index:20}
+.page.active .kicker,.page.active h2,.page.active p,.page.active .note,.page.active .image-slot{animation:softPop .55s both}
+.page.active .kicker{animation-delay:.05s}.page.active h2{animation-delay:.09s}.page.active p,.page.active .note{animation-delay:.14s}
+
+.kicker{font:11px Arial,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#b18b80;margin-bottom:24px}
+h2{font-weight:normal;font-size:clamp(26px,5vw,39px);line-height:1.2;margin:0 0 22px}
+p{font-size:clamp(17px,2.5vw,21px);line-height:1.8;margin:0;max-width:550px}
+.note{font-size:clamp(21px,3vw,27px);line-height:1.55}
+.prompt{font:12px Arial,sans-serif;letter-spacing:.04em;color:#a1847c;margin:16px 0 0}
+.answer{max-width:360px}
+.reveal{margin-top:20px;padding:17px 22px;background:linear-gradient(135deg,#f8e8e8,#f5e1e5);border:1px solid #efd3d8;border-radius:14px;font-size:clamp(19px,3vw,24px);line-height:1.5;max-width:440px;box-shadow:0 8px 22px #b77c8818;animation:softPop .45s both}
+.hidden{display:none!important}
+.image-slot{width:min(420px,100%);min-height:210px;border:1.5px dashed #d8b7bd;border-radius:16px;background:linear-gradient(135deg,#fff8f6,#f7e5e8);display:grid;place-items:center;padding:22px;margin-top:22px;color:#a1847c;font:13px/1.6 Arial,sans-serif}
+.image-slot img{display:block;max-width:100%;max-height:390px;width:auto;height:auto;object-fit:contain;border-radius:12px;box-shadow:0 8px 24px #80565d18}.image-slot img.hidden{display:none}
+.controls{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 4px}
+.sound-row{display:flex;justify-content:center;margin-top:-4px}
+.sound-toggle{font:12px Arial,sans-serif;letter-spacing:.04em;padding:9px 16px}
+#count{font:12px Arial,sans-serif;letter-spacing:.12em;color:#9b847b}
+.small{background:transparent;color:#9b716e;box-shadow:none;border:1px solid #dfc8c0}
+.small:hover{background:#f4e6e2;color:#87575a}
+@media(max-width:520px){body{padding:12px}.book,.page{min-height:590px}.page{padding-top:52px;padding-bottom:78px}.controls button{padding:11px 16px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}#sparkleLayer{display:none}}
+</style>
+</head>
+<body>
+<div id="sparkleLayer" aria-hidden="true"></div>
+<section id="lock">
+  <div class="sub">a tiny book, just for you</div>
+  <h1>Before you come in…</h1>
+  <p style="font-size:16px;line-height:1.6">There's a little something waiting for you.</p>
+  <form id="unlockForm">
+    <input id="password" type="password" placeholder="Enter the password" autocomplete="off" aria-label="Password">
+    <div id="error"></div>
+    <button type="submit">Open the book ✦</button>
+  </form>
+</section>
+
+<main id="bookWrap">
+ <div class="book" aria-live="polite">
+  <section class="page active" data-page="0">
+    <div class="kicker">page one · a small announcement</div>
+    <p class="note">“i developed this website so better be in a good mood now or I'll smack your face”</p>
+    <div class="prompt">— said with love, obviously 😼</div>
+  </section>
+
+  <section class="page" data-page="1">
+    <div class="kicker">page two · warm-up round</div>
+    <h2>Knock knock.</h2>
+    <div class="answer" id="knockOne">
+      <input id="whoInput" placeholder="Type: who's there?" aria-label="Who's there">
+      <button id="whoBtn">Confirm</button>
+    </div>
+    <div class="answer hidden" id="knockTwo">
+      <h2 style="font-size:28px;margin-top:8px">Broken pencil.</h2>
+      <input id="pencilInput" placeholder="Ask: broken pencil who?" aria-label="Broken pencil who">
+      <button id="pencilBtn">Ask</button>
+    </div>
+    <div class="reveal hidden" id="punchline">Nevermind, it's pointless. ✏️</div>
+  </section>
+
+  <section class="page" data-page="2">
+    <div class="kicker">page three · a very important question</div>
+    <h2>Simba was moving too slow, you know what I told him to do?</h2>
+    <input class="answer" id="simbaInput" placeholder="Type: what" aria-label="What">
+    <button id="simbaBtn">Confirm</button>
+    <div class="reveal hidden" id="simbaReveal">I told him to mufasa. 🦁</div>
+  </section>
+
+  <section class="page" data-page="3">
+    <div class="kicker">page four · one more thing</div>
+    <h2>By the way…</h2>
+    <p>uhm.</p>
+    <div class="image-slot" id="imageSlot">
+      <span id="imageFallback">Your image will go here ♡<br>Upload <strong>by-the-way.jpg</strong> beside index.html in your GitHub repository.</span>
+      <img id="byTheWayImage" src="by-the-way.jpg" alt="A little something, by the way" class="hidden">
+    </div>
+  </section>
+
+  <section class="page" data-page="4">
+    <div class="kicker">the last page · read this properly</div>
+    <h2>A little reminder.</h2>
+    <p>I don't know what happened that made your mood bad, but trust me, that bad mood doesn't suit you at all. Whatever you are going through right now, just know that you're going to get through it, and I'm always right here in your corner cheering you on. Just take a deep breath, relax, and never forget that you are literally the best and the skibidiest sigma alpha wolf aka Rina, have the strength to fight me 😼</p>
+    <div class="prompt" style="margin-top:26px">the end. now go smile a little ♡</div>
+  </section>
+ </div>
+ <nav class="controls" aria-label="Page controls">
+   <button class="small" id="backBtn" disabled>← Back</button>
+   <span id="count">01 / 05</span>
+   <button id="nextBtn">Turn page →</button>
+ </nav>
+ <div class="sound-row">
+   <button class="small sound-toggle" id="soundToggle" type="button" aria-pressed="true">♫ Sound on</button>
+ </div>
+</main>
+
+<!-- Put these three audio files beside index.html in your GitHub repository. -->
+<audio id="pageFlipAudio" src="page-flip.mp3" preload="auto"></audio>
+<audio id="clickAudio" src="click.mp3" preload="auto"></audio>
+<audio id="starryAudio" src="starry-effects.mp3" preload="auto" loop></audio>
+
+<script>
+
+// Decorative stars use requestAnimationFrame, so motion follows the device's
+// actual display refresh (including 90 Hz screens) without forcing a frame rate.
+(function(){
+  const layer=document.getElementById('sparkleLayer');
+  if(!layer || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const symbols=['✦','✧','⋆','·'];
+  const count=window.innerWidth<600?15:25;
+  for(let i=0;i<count;i++){
+    const star=document.createElement('span');
+    star.className='spark';
+    star.textContent=symbols[i%symbols.length];
+    star.style.left=(Math.random()*100)+'%';
+    star.style.top=(Math.random()*100)+'%';
+    star.style.fontSize=(8+Math.random()*13)+'px';
+    star.style.setProperty('--dur',(2+Math.random()*3)+'s');
+    star.style.animationDelay=(-Math.random()*4)+'s';
+    layer.appendChild(star);
+  }
+  let last=0;
+  function gentleDrift(t){
+    if(t-last>1000/90){ last=t; }
+    requestAnimationFrame(gentleDrift);
+  }
+  requestAnimationFrame(gentleDrift);
+  function burst(x,y){
+    for(let i=0;i<5;i++){
+      const s=document.createElement('span');
+      s.className='spark';s.textContent=i%2?'✧':'✦';
+      s.style.left=(x+(Math.random()*48-24))+'px';
+      s.style.top=(y+(Math.random()*42-21))+'px';
+      s.style.fontSize=(10+Math.random()*10)+'px';
+      s.style.animation='softPop .5s ease-out both';
+      layer.appendChild(s);
+      setTimeout(()=>s.remove(),650);
+    }
+  }
+  document.addEventListener('pointerdown',e=>burst(e.clientX,e.clientY),{passive:true});
+})();
+
+const byTheWayImage=document.getElementById('byTheWayImage');
+const imageFallback=document.getElementById('imageFallback');
+byTheWayImage.addEventListener('load',()=>{
+  byTheWayImage.classList.remove('hidden');
+  imageFallback.classList.add('hidden');
+});
+byTheWayImage.addEventListener('error',()=>{
+  byTheWayImage.classList.add('hidden');
+  imageFallback.classList.remove('hidden');
+});
+// Audio files are external assets in the same GitHub folder as index.html.
+const pageFlipAudio = document.getElementById('pageFlipAudio');
+const clickAudio = document.getElementById('clickAudio');
+const starryAudio = document.getElementById('starryAudio');
+const soundToggle = document.getElementById('soundToggle');
+let soundEnabled = true;
+
+function playSound(audio, volume=0.45) {
+  if (!soundEnabled || !audio) return;
+  try {
+    audio.pause();
+    audio.currentTime = 0;
+    audio.playbackRate = 2;
+    audio.volume = volume;
+    const playback = audio.play();
+    if (playback && typeof playback.catch === 'function') playback.catch(()=>{});
+  } catch (_) {}
+}
+function startStarrySound() {
+  if (!soundEnabled) return;
+  starryAudio.playbackRate = 2;
+  starryAudio.volume = 0.16;
+  const playback = starryAudio.play();
+  if (playback && typeof playback.catch === 'function') playback.catch(()=>{});
+}
+soundToggle.addEventListener('click', () => {
+  soundEnabled = !soundEnabled;
+  soundToggle.textContent = soundEnabled ? '♫ Sound on' : '♫ Sound off';
+  soundToggle.setAttribute('aria-pressed', String(soundEnabled));
+  if (soundEnabled) startStarrySound();
+  else { pageFlipAudio.pause(); clickAudio.pause(); starryAudio.pause(); }
+});
+
+// Small UI clicks use the click sound. Page navigation has its own paper sound.
+document.addEventListener('click', (event) => {
+  const button = event.target.closest('button');
+  if (!button || button.id === 'soundToggle' || button.id === 'backBtn' || button.id === 'nextBtn') return;
+  playSound(clickAudio, 0.32);
+});
+
+const PASSWORD = "imnigger";
+const lock = document.getElementById('lock');
+const bookWrap = document.getElementById('bookWrap');
+document.getElementById('unlockForm').addEventListener('submit', e => {
+  e.preventDefault();
+  if (document.getElementById('password').value === PASSWORD) {
+    lock.style.display='none'; bookWrap.style.display='block';
+    startStarrySound();
+  } else {
+    document.getElementById('error').textContent='Hmm, that is not the right password. Try again.';
+  }
+});
+const pages=[...document.querySelectorAll('.page')];
+let current=0;
+// Stack the paper leaves so each one physically turns around the book spine.
+pages.forEach((p,i)=>{p.style.zIndex=String(pages.length-i);});
+function showPage(n){
+  const target=Math.max(0,Math.min(pages.length-1,n));
+  if (target !== current) playSound(pageFlipAudio, 0.55);
+  if(target>current){ for(let i=current;i<target;i++) pages[i].classList.add('turned'); }
+  if(target<current){ for(let i=current-1;i>=target;i--) pages[i].classList.remove('turned'); }
+  current=target;
+  pages.forEach((p,i)=>p.classList.toggle('active',i===current));
+  document.getElementById('backBtn').disabled=current===0;
+  document.getElementById('nextBtn').disabled=current===pages.length-1;
+  document.getElementById('count').textContent=String(current+1).padStart(2,'0')+' / '+String(pages.length).padStart(2,'0');
+}
+document.getElementById('backBtn').addEventListener('click',()=>showPage(current-1));
+document.getElementById('nextBtn').addEventListener('click',()=>showPage(current+1));
+document.getElementById('whoBtn').addEventListener('click',()=>{
+  if(document.getElementById('whoInput').value.trim().toLowerCase().replace(/[?!.,]/g,'')==="who's there"){
+    document.getElementById('knockOne').classList.add('hidden');
+    document.getElementById('knockTwo').classList.remove('hidden');
+  } else { document.getElementById('whoInput').focus(); }
+});
+document.getElementById('pencilBtn').addEventListener('click',()=>{
+  const v=document.getElementById('pencilInput').value.trim().toLowerCase().replace(/[?!.,]/g,'');
+  if(v==="broken pencil who" || v==="pencil who"){
+    document.getElementById('punchline').classList.remove('hidden');
+  } else { document.getElementById('pencilInput').focus(); }
+});
+document.getElementById('simbaBtn').addEventListener('click',()=>{
+  if(document.getElementById('simbaInput').value.trim().toLowerCase().replace(/[?!.,]/g,'')==="what"){
+    document.getElementById('simbaReveal').classList.remove('hidden');
+  } else { document.getElementById('simbaInput').focus(); }
+});
+</script>
+</body>
+</html>
